@@ -1,0 +1,373 @@
+import os
+import random
+from datetime import datetime
+
+try:
+    from colorama import init, Fore, Style
+    from pyfiglet import Figlet
+
+    init(autoreset=True)
+    COLOR = True
+except ImportError:
+    COLOR = False
+
+
+# ===========================
+# Helper Functions
+# ===========================
+
+def cprint(text, color=""):
+    if COLOR:
+        colors = {
+            "red": Fore.RED,
+            "green": Fore.GREEN,
+            "yellow": Fore.YELLOW,
+            "cyan": Fore.CYAN,
+            "blue": Fore.BLUE,
+            "magenta": Fore.MAGENTA,
+        }
+        print(colors.get(color.lower(), "") + text + Style.RESET_ALL)
+    else:
+        print(text)
+
+
+def clear_screen():
+    os.system("cls" if os.name == "nt" else "clear")
+
+
+def banner():
+    clear_screen()
+
+    if COLOR:
+        f = Figlet(font="slant")
+        print(Fore.CYAN + f.renderText("Caesar Cipher"))
+    else:
+        print("=" * 60)
+        print("             CAESAR CIPHER TOOL")
+        print("=" * 60)
+
+
+# ===========================
+# Caesar Cipher Functions
+# ===========================
+
+def encrypt(text, shift):
+
+    result = ""
+
+    for char in text:
+
+        if char.isalpha():
+
+            if char.isupper():
+                result += chr((ord(char) - ord('A') + shift) % 26 + ord('A'))
+
+            else:
+                result += chr((ord(char) - ord('a') + shift) % 26 + ord('a'))
+
+        else:
+            result += char
+
+    return result
+
+
+def decrypt(text, shift):
+    return encrypt(text, -shift)
+
+
+# ===========================
+# Message Statistics
+# ===========================
+
+def message_stats(text):
+
+    letters = sum(c.isalpha() for c in text)
+    digits = sum(c.isdigit() for c in text)
+    spaces = sum(c.isspace() for c in text)
+    words = len(text.split())
+    chars = len(text)
+
+    print("\n========== MESSAGE STATISTICS ==========")
+    print(f"Letters   : {letters}")
+    print(f"Digits    : {digits}")
+    print(f"Spaces    : {spaces}")
+    print(f"Words     : {words}")
+    print(f"Characters: {chars}")
+    print("=" * 40)
+
+
+# ===========================
+# Security Analysis
+# ===========================
+
+def security_analysis():
+
+    cprint("\n========== SECURITY ANALYSIS ==========", "yellow")
+
+    print("Cipher Used       : Caesar Cipher")
+    print("Key Space         : 25 Possible Keys")
+    print("Security Rating   : VERY WEAK")
+
+    print("\nReasons:")
+    print("✔ Vulnerable to brute-force attacks.")
+    print("✔ Frequency analysis can easily crack it.")
+    print("✔ Not suitable for modern encryption.")
+    print("✔ Used mainly for learning cryptography.")
+
+
+# ===========================
+# History Functions
+# ===========================
+
+def save_history(operation, key, original, result):
+
+    with open("history.txt", "a", encoding="utf-8") as file:
+
+        file.write("=" * 60 + "\n")
+        file.write(f"Date      : {datetime.now()}\n")
+        file.write(f"Operation : {operation}\n")
+        file.write(f"Key       : {key}\n\n")
+
+        file.write("Original Message\n")
+        file.write("----------------\n")
+        file.write(original + "\n\n")
+
+        file.write("Result\n")
+        file.write("------\n")
+        file.write(result + "\n")
+
+        file.write("=" * 60 + "\n\n")
+
+
+def view_history():
+
+    print()
+
+    if not os.path.exists("history.txt"):
+        cprint("No history found.", "red")
+        return
+
+    with open("history.txt", "r", encoding="utf-8") as file:
+        print(file.read())
+
+
+def clear_history():
+
+    if not os.path.exists("history.txt"):
+        cprint("History file does not exist.", "red")
+        return
+
+    confirm = input("Are you sure you want to clear history? (Y/N): ")
+
+    if confirm.lower() == "y":
+
+        open("history.txt", "w").close()
+        cprint("History cleared successfully!", "green")
+
+    else:
+        cprint("History not cleared.", "yellow")
+
+
+# ===========================
+# Brute Force
+# ===========================
+
+def brute_force(cipher):
+
+    cprint("\nTrying every possible key...\n", "cyan")
+
+    for key in range(1, 26):
+
+        print(f"Key {key:2}: {decrypt(cipher, key)}")
+
+
+# ===========================
+# Input Validation
+# ===========================
+
+def get_key():
+
+    while True:
+
+        try:
+
+            key = int(input("Enter key (1-25): "))
+
+            if 1 <= key <= 25:
+                return key
+
+            cprint("Key must be between 1 and 25.", "red")
+
+        except ValueError:
+
+            cprint("Please enter a valid number.", "red")
+
+
+# ===========================
+# Pause
+# ===========================
+
+def pause():
+    input("\nPress ENTER to continue...")
+
+
+# ===========================
+# Main Menu
+# ===========================
+
+while True:
+
+    banner()
+
+    cprint("=" * 60, "cyan")
+    cprint("          CAESAR CIPHER SECURITY TOOL", "cyan")
+    cprint("=" * 60, "cyan")
+
+    print("1. Encrypt Message")
+    print("2. Decrypt Message")
+    print("3. Random Key Encryption")
+    print("4. Brute Force Attack")
+    print("5. View History")
+    print("6. Clear History")
+    print("7. Security Analysis")
+    print("8. Exit")
+
+    choice = input("\nChoose an option: ")
+
+
+
+# ===========================
+# Option 1 - Encrypt
+# ===========================
+    if choice == "1":
+
+        message = input("\nEnter the message: ")
+        key = get_key()
+
+        encrypted = encrypt(message, key)
+
+        cprint("\nEncryption Successful!", "green")
+        print(f"\nOriginal Message : {message}")
+        print(f"Encrypted Message: {encrypted}")
+
+        message_stats(message)
+
+        save_history(
+            "Encrypt",
+            key,
+            message,
+            encrypted
+        )
+
+        pause()
+
+# ===========================
+# Option 2 - Decrypt
+# ===========================
+    elif choice == "2":
+
+        message = input("\nEnter the encrypted message: ")
+        key = get_key()
+
+        decrypted = decrypt(message, key)
+
+        cprint("\nDecryption Successful!", "green")
+        print(f"\nEncrypted Message : {message}")
+        print(f"Decrypted Message : {decrypted}")
+
+        message_stats(decrypted)
+
+        save_history(
+            "Decrypt",
+            key,
+            message,
+            decrypted
+        )
+
+        pause()
+
+# ===========================
+# Option 3 - Random Key Encryption
+# ===========================
+    elif choice == "3":
+
+        message = input("\nEnter the message: ")
+
+        key = random.randint(1, 25)
+
+        encrypted = encrypt(message, key)
+
+        cprint("\nRandom Key Generated!", "yellow")
+
+        print(f"\nGenerated Key     : {key}")
+        print(f"Encrypted Message : {encrypted}")
+
+        cprint("\nSave this key! You'll need it to decrypt later.", "cyan")
+
+        message_stats(message)
+
+        save_history(
+            "Random Encryption",
+            key,
+            message,
+            encrypted
+        )
+
+        pause()
+
+# ===========================
+# Option 4 - Brute Force
+# ===========================
+    elif choice == "4":
+
+        cipher = input("\nEnter the encrypted message: ")
+
+        brute_force(cipher)
+
+        pause()
+
+# ===========================
+# Option 5 - View History
+# ===========================
+    elif choice == "5":
+
+        view_history()
+
+        pause()
+
+# ===========================
+# Option 6 - Clear History
+# ===========================
+    elif choice == "6":
+
+        clear_history()
+
+        pause()
+
+# ===========================
+# Option 7 - Security Analysis
+# ===========================
+    elif choice == "7":
+
+        security_analysis()
+
+        pause()
+
+# ===========================
+# Option 8 - Exit
+# ===========================
+    elif choice == "8":
+
+        cprint("\nThank you for using Caesar Cipher Security Tool!", "green")
+        cprint("Goodbye!\n", "cyan")
+        break
+
+# ===========================
+# Invalid Option
+# ===========================
+    else:
+
+        cprint("\nInvalid choice!", "red")
+        cprint("Please select a number between 1 and 8.", "yellow")
+
+        pause()
